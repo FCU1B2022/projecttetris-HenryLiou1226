@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <time.h>
 #include <windows.h>
+#include <conio.h>
 
 #define LEFT_KEY 0x25   // The key to move left, default = 0x25 (left arrow)
 #define RIGHT_KEY 0x27  // The key to move right, default = 0x27 (right arrow)
@@ -10,7 +11,7 @@
 #define DOWN_KEY 0x28   // The key to move down, default = 0x28 (down arrow)
 #define FALL_KEY 0x20   // The key to fall, default = 0x20 (spacebar)
 
-#define FALL_DELAY 500   // The delay between each fall, default = 500
+
 #define RENDER_DELAY 100 // The delay between each frame, default = 100
 
 #define LEFT_FUNC() GetAsyncKeyState(LEFT_KEY) & 0x8000
@@ -22,6 +23,7 @@
 #define CANVAS_WIDTH 10
 #define CANVAS_HEIGHT 20
 
+int FALL_DELAY = 500;
 typedef enum
 {
     RED = 41,
@@ -271,7 +273,7 @@ void printCanvas(Block canvas[CANVAS_HEIGHT][CANVAS_WIDTH], State *state)
         }
         printf("\033[0m|\n");
     }
-
+    printf("\tscore:%d", state->score);
     Shape shapeData = shapes[state->queue[1]];
     printf("\033[%d;%dHNext:", 3, CANVAS_WIDTH * 2 + 5);
     for (int i = 1; i <= 3; i++)
@@ -407,22 +409,73 @@ void logic(Block canvas[CANVAS_HEIGHT][CANVAS_WIDTH], State *state)
     }
     return;
 }
-
+int key_pressed(void) /*偵測按下的按鍵並回傳*/
+{
+    if (_kbhit() != 0)
+        return _getch();
+    return 0;
+}
 int main()
 {
     srand(time(NULL));
+    printf("\tPress space to start the game.\n");
+    while (1)
+    {
+        int start = key_pressed();
+        if (start == 0)
+        {
+            continue;
+        }
+        else if (start == 32)
+        {
+            system("cls");
+            printf("\tPress key to choose difficulty:\n");
+            printf("\t\t1. Easy\n");
+            printf("\t\t2. Normal\n");
+            printf("\t\t3. Hard\n");
+            printf("\t\t4. Impossible\n");
+            while (1)
+            {
+                int hard = key_pressed();
+                if (hard == 0)
+                {
+                    continue;
+                }
+                else if (hard == 49)
+                {
+                    FALL_DELAY = 1000;
+                    break;
+                }
+                else if (hard == 50)
+                {
+                    FALL_DELAY = 500;
+                    break;
+                }
+                else if (hard == 51)
+                {
+                    FALL_DELAY = 100;
+                    break;
+                }
+                else if (hard == 52)
+                {
+                    FALL_DELAY = 1;
+                    break;
+                }
+            }
+            system("cls");
+            break;
+        }
+    }
     State state = {
         .x = CANVAS_WIDTH / 2,
         .y = 0,
         .score = 0,
         .rotate = 0,
         .fallTime = 0};
-
     for (int i = 0; i < 4; i++)
     {
         state.queue[i] = rand() % 7;
     }
-
     Block canvas[CANVAS_HEIGHT][CANVAS_WIDTH];
     for (int i = 0; i < CANVAS_HEIGHT; i++)
     {
@@ -431,10 +484,7 @@ int main()
             resetBlock(&canvas[i][j]);
         }
     }
-
     system("cls");
-    // printf("\e[?25l"); // hide cursor
-
     move(canvas, state.x, state.y, state.rotate, state.x, state.y, state.rotate, state.queue[0]);
 
     while (1)
