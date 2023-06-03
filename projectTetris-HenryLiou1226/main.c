@@ -11,7 +11,6 @@
 #define DOWN_KEY 0x28   // The key to move down, default = 0x28 (down arrow)
 #define FALL_KEY 0x20   // The key to fall, default = 0x20 (spacebar)
 
-
 #define RENDER_DELAY 100 // The delay between each frame, default = 100
 
 #define LEFT_FUNC() GetAsyncKeyState(LEFT_KEY) & 0x8000
@@ -23,7 +22,7 @@
 #define CANVAS_WIDTH 10
 #define CANVAS_HEIGHT 20
 
-int FALL_DELAY = 500;
+int FALL_DELAY;
 typedef enum
 {
     RED = 41,
@@ -60,6 +59,7 @@ typedef struct
 {
     int x;
     int y;
+    int dead;
     int score;
     int rotate;
     int fallTime;
@@ -328,7 +328,10 @@ int clearLine(Block canvas[CANVAS_HEIGHT][CANVAS_WIDTH])
         if (isFull)
         {
             linesCleared += 1;
-
+            if (FALL_DELAY > 100)
+            {
+                FALL_DELAY -= 20;
+            }
             for (int j = i; j > 0; j--)
             {
                 for (int k = 0; k < CANVAS_WIDTH; k++)
@@ -402,8 +405,8 @@ void logic(Block canvas[CANVAS_HEIGHT][CANVAS_WIDTH], State *state)
 
             if (!move(canvas, state->x, state->y, state->rotate, state->x, state->y, state->rotate, state->queue[0]))
             {
-                printf("\033[%d;%dH\x1b[41m GAME OVER \x1b[0m\033[%d;%dH", CANVAS_HEIGHT - 3, CANVAS_WIDTH * 2 + 5, CANVAS_HEIGHT + 5, 0);
-                exit(0);
+                state->dead = 1;
+                break;
             }
         }
     }
@@ -418,15 +421,26 @@ int key_pressed(void) /*偵測按下的按鍵並回傳*/
 int main()
 {
     srand(time(NULL));
-    printf("\tPress space to start the game.\n");
+    printf("\tPress enter to start the game.\n");
     while (1)
     {
         int start = key_pressed();
+        State state = {
+            .x = CANVAS_WIDTH / 2,
+            .y = 0,
+            .dead = 0,
+            .score = 0,
+            .rotate = 0,
+            .fallTime = 0};
         if (start == 0)
         {
             continue;
         }
-        else if (start == 32)
+        else if (start == 27)
+        {
+            break;
+        }
+        else if (start == 13)
         {
             system("cls");
             printf("\tPress key to choose difficulty:\n");
@@ -453,44 +467,50 @@ int main()
                 }
                 else if (hard == 51)
                 {
-                    FALL_DELAY = 100;
+                    FALL_DELAY = 300;
                     break;
                 }
                 else if (hard == 52)
                 {
-                    FALL_DELAY = 1;
+                    FALL_DELAY = 100;
                     break;
                 }
             }
-            system("cls");
-            break;
-        }
-    }
-    State state = {
-        .x = CANVAS_WIDTH / 2,
-        .y = 0,
-        .score = 0,
-        .rotate = 0,
-        .fallTime = 0};
-    for (int i = 0; i < 4; i++)
-    {
-        state.queue[i] = rand() % 7;
-    }
-    Block canvas[CANVAS_HEIGHT][CANVAS_WIDTH];
-    for (int i = 0; i < CANVAS_HEIGHT; i++)
-    {
-        for (int j = 0; j < CANVAS_WIDTH; j++)
-        {
-            resetBlock(&canvas[i][j]);
-        }
-    }
-    system("cls");
-    move(canvas, state.x, state.y, state.rotate, state.x, state.y, state.rotate, state.queue[0]);
 
-    while (1)
-    {
-        logic(canvas, &state);
-        printCanvas(canvas, &state);
-        Sleep(100);
+            for (int i = 0; i < 4; i++)
+            {
+                state.queue[i] = rand() % 7;
+            }
+            Block canvas[CANVAS_HEIGHT][CANVAS_WIDTH];
+            for (int i = 0; i < CANVAS_HEIGHT; i++)
+            {
+                for (int j = 0; j < CANVAS_WIDTH; j++)
+                {
+                    resetBlock(&canvas[i][j]);
+                }
+            }
+            system("cls");
+            move(canvas, state.x, state.y, state.rotate, state.x, state.y, state.rotate, state.queue[0]);
+
+            while (1)
+            {
+                if (state.dead == 1)
+                {
+                    break;
+                }
+                logic(canvas, &state);
+                printCanvas(canvas, &state);
+                Sleep(100);
+            }
+        }
+        else
+        {
+            continue;
+        }
+        system("cls");
+        printf("\n");
+        printf("\t                  Game Over");
+        printf("\n\t              Your score is %d", state.score);
+        printf("\n\tPress enter to try again or press esc to exit.\n");
     }
 }
