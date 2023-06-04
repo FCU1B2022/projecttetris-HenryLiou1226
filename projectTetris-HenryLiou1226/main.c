@@ -465,6 +465,10 @@ int main()
             printf("\t\t2. Normal\n");
             printf("\t\t3. Hard\n");
             printf("\t\t4. Impossible\n");
+            printf("     _____   ___   _____   ___    ___    ___   \n");
+            printf("    |_   _| | __| |_   _| | _ \\  |_ _|  / __|  \n");
+            printf("      | |   | _|    | |   |   /   | |   \\__ \\  \n");
+            printf("      |_|   |___|   |_|   |_|_\\  |___|  |___/ \n");
             while (1)
             {
                 int hard = key_pressed();
