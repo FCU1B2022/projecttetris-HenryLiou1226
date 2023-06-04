@@ -422,6 +422,10 @@ int main()
 {
     srand(time(NULL));
     printf("\tPress enter to start the game.\n");
+    printf("    _____   ___   _____   ___    ___    ___   \n");
+    printf("   |_   _| | __| |_   _| | _ \\  |_ _|  / __|  \n");
+    printf("     | |   | _|    | |   |   /   | |   \\__ \\  \n");
+    printf("     |_|   |___|   |_|   |_|_\\  |___|  |___/ \n");
     while (1)
     {
         int start = key_pressed();
@@ -432,6 +436,19 @@ int main()
             .score = 0,
             .rotate = 0,
             .fallTime = 0};
+        for (int i = 0; i < 4; i++)
+        {
+            state.queue[i] = rand() % 7;
+        }
+        Block canvas[CANVAS_HEIGHT][CANVAS_WIDTH];
+        for (int i = 0; i < CANVAS_HEIGHT; i++)
+        {
+            for (int j = 0; j < CANVAS_WIDTH; j++)
+            {
+                resetBlock(&canvas[i][j]);
+            }
+        }
+        move(canvas, state.x, state.y, state.rotate, state.x, state.y, state.rotate, state.queue[0]);
         if (start == 0)
         {
             continue;
@@ -476,22 +493,7 @@ int main()
                     break;
                 }
             }
-
-            for (int i = 0; i < 4; i++)
-            {
-                state.queue[i] = rand() % 7;
-            }
-            Block canvas[CANVAS_HEIGHT][CANVAS_WIDTH];
-            for (int i = 0; i < CANVAS_HEIGHT; i++)
-            {
-                for (int j = 0; j < CANVAS_WIDTH; j++)
-                {
-                    resetBlock(&canvas[i][j]);
-                }
-            }
             system("cls");
-            move(canvas, state.x, state.y, state.rotate, state.x, state.y, state.rotate, state.queue[0]);
-
             while (1)
             {
                 if (state.dead == 1)
