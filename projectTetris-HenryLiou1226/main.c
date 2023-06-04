@@ -504,6 +504,11 @@ int main()
                 {
                     break;
                 }
+                int restart = key_pressed();
+                if (restart == 114)
+                {
+                    break;
+                }
                 logic(canvas, &state);
                 printCanvas(canvas, &state);
                 Sleep(100);
