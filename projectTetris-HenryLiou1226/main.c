@@ -33,6 +33,7 @@ typedef enum
     CYAN,
     WHITE,
     BLACK = 0,
+    High_Intensty_WHITE = 107,
 } Color;
 
 typedef enum
@@ -57,6 +58,8 @@ typedef struct
 
 typedef struct
 {
+    bool hold;
+    ShapeId hold_shape;
     int x;
     int y;
     int dead;
@@ -202,20 +205,38 @@ void setBlock(Block *block, Color color, ShapeId shape, bool current)
     block->shape = shape;
     block->current = current;
 }
-
 void resetBlock(Block *block)
 {
     block->color = BLACK;
     block->shape = EMPTY;
     block->current = false;
 }
-
+bool drop_predict(Block canvas[CANVAS_HEIGHT][CANVAS_WIDTH], int X_position, int Y_position, int newRotate, ShapeId shapeId)
+{
+    Shape shapeData = shapes[shapeId];
+    for (int i = 0; i < shapeData.size; i++)
+    {
+        for (int j = 0; j < shapeData.size; j++)
+        {
+            if (shapeData.rotates[newRotate][i][j])
+            {
+                if (X_position + j < 0 || X_position + j >= CANVAS_WIDTH || Y_position + i < 0 || Y_position + i >= CANVAS_HEIGHT)
+                {
+                    return false;
+                }
+                if (!canvas[Y_position + i][X_position + j].current && canvas[Y_position + i][X_position + j].shape != EMPTY)
+                {
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
+}
 bool move(Block canvas[CANVAS_HEIGHT][CANVAS_WIDTH], int originalX, int originalY, int originalRotate, int newX, int newY, int newRotate, ShapeId shapeId)
 {
     Shape shapeData = shapes[shapeId];
     int size = shapeData.size;
-
-    // check if the new position is valid to place the block
     for (int i = 0; i < size; i++)
     {
         for (int j = 0; j < size; j++)
@@ -263,6 +284,8 @@ bool move(Block canvas[CANVAS_HEIGHT][CANVAS_WIDTH], int originalX, int original
 void printCanvas(Block canvas[CANVAS_HEIGHT][CANVAS_WIDTH], State *state)
 {
     printf("\033[0;0H\n");
+    Shape shapeData = shapes[state->queue[0]];
+    int y_position = state->y + 1;
     for (int i = 0; i < CANVAS_HEIGHT; i++)
     {
         printf("|");
@@ -272,8 +295,21 @@ void printCanvas(Block canvas[CANVAS_HEIGHT][CANVAS_WIDTH], State *state)
         }
         printf("\033[0m|\n");
     }
-    printf("\tscore:%d", state->score);
-    Shape shapeData = shapes[state->queue[1]];
+    while (drop_predict(canvas, state->x, y_position, state->rotate, state->queue[0]))
+    {
+        y_position++;
+    }
+    for (int i = 0; i < 4; i++)
+    {
+        for (int j = 0; j < 4; j++)
+        {
+            if (i < shapeData.size && j < shapeData.size && shapeData.rotates[state->rotate][i][j])
+            {
+                printf("\033[%d;%dH\033[%dm§f\033[0m", y_position + i + 1, 2 * (state->x + j) + 2, 37);
+            }
+        }
+    }
+    shapeData = shapes[state->queue[1]];
     printf("\033[%d;%dHNext:", 3, CANVAS_WIDTH * 2 + 5);
     for (int i = 1; i <= 3; i++)
     {
@@ -294,6 +330,7 @@ void printCanvas(Block canvas[CANVAS_HEIGHT][CANVAS_WIDTH], State *state)
             }
         }
     }
+    printf("\033[%d;%dHScore : %d\n", 18, CANVAS_WIDTH * 2 + 12, state->score);
     return;
 }
 
@@ -411,7 +448,7 @@ void logic(Block canvas[CANVAS_HEIGHT][CANVAS_WIDTH], State *state)
     }
     return;
 }
-int key_pressed(void) /*ÂÅµÊ∏¨Êåâ‰∏ãÁöÑÊåâÈçµ‰∏¶ÂõûÂÇ≥*/
+int key_pressed(void) /*∞ª¥˙´ˆ§U™∫´ˆ¡‰®√¶^∂«*/
 {
     if (_kbhit() != 0)
         return _getch();
@@ -429,6 +466,8 @@ int main()
     {
         int start = key_pressed();
         State state = {
+            .hold = FALSE,
+            .hold_shape = EMPTY,
             .x = CANVAS_WIDTH / 2,
             .y = 0,
             .dead = 0,
@@ -510,11 +549,11 @@ int main()
                 {
                     break;
                 }
-                else if(restart == 27)
+                else if (restart == 27)
                 {
                     system("cls");
                     printf("\tpress 1 to continue \n\tpress 2 to restart \n\tpress 3 to exit\n");
-                    while(1)
+                    while (1)
                     {
                         int choose = key_pressed();
                         if (choose == 49)
