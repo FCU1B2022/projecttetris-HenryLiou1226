@@ -260,7 +260,6 @@ bool move(Block canvas[CANVAS_HEIGHT][CANVAS_WIDTH], int originalX, int original
 
     return true;
 }
-
 void printCanvas(Block canvas[CANVAS_HEIGHT][CANVAS_WIDTH], State *state)
 {
     printf("\033[0;0H\n");
@@ -505,12 +504,36 @@ int main()
                     break;
                 }
                 int restart = key_pressed();
+                logic(canvas, &state);
+                printCanvas(canvas, &state);
                 if (restart == 114)
                 {
                     break;
                 }
-                logic(canvas, &state);
-                printCanvas(canvas, &state);
+                else if(restart == 27)
+                {
+                    system("cls");
+                    printf("\tpress 1 to continue \n\tpress 2 to restart \n\tpress 3 to exit\n");
+                    while(1)
+                    {
+                        int choose = key_pressed();
+                        if (choose == 49)
+                        {
+                            break;
+                        }
+                        else if (choose == 50)
+                        {
+                            state.dead = 1;
+                            break;
+                        }
+                        else if (choose == 51)
+                        {
+                            system("cls");
+                            return 0;
+                        }
+                    }
+                    system("cls");
+                }
                 Sleep(100);
             }
         }
