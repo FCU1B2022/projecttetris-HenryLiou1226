@@ -291,7 +291,10 @@ void printCanvas(Block canvas[CANVAS_HEIGHT][CANVAS_WIDTH], State *state)
         printf("|");
         for (int j = 0; j < CANVAS_WIDTH; j++)
         {
-            printf("\033[%dm\u3000", canvas[i][j].color);
+            if(canvas[i][j].color != 0)
+                printf("\033[%dm\u3000", canvas[i][j].color);
+            else
+                printf("\033[38;5;241;40m¡C\033[0m");
         }
         printf("\033[0m|\n");
     }
