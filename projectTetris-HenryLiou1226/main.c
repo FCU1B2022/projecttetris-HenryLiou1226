@@ -291,7 +291,7 @@ void printCanvas(Block canvas[CANVAS_HEIGHT][CANVAS_WIDTH], State *state)
         printf("|");
         for (int j = 0; j < CANVAS_WIDTH; j++)
         {
-            if(canvas[i][j].color != 0)
+            if (canvas[i][j].color != 0)
                 printf("\033[%dm\u3000", canvas[i][j].color);
             else
                 printf("\033[38;5;241;40m¡C\033[0m");
@@ -333,7 +333,7 @@ void printCanvas(Block canvas[CANVAS_HEIGHT][CANVAS_WIDTH], State *state)
             }
         }
     }
-    printf("\033[%d;%dHScore : %d\n", 18, CANVAS_WIDTH * 2 + 12, state->score);
+    printf("\033[%d;%dHScore : %d\n", 23, 7, state->score);
     return;
 }
 
